@@ -29,7 +29,7 @@ exports.verifyToken = async (token, secretKey) => {
 		if (error.name === 'TokenExpiredError') {
 			console.log('Token has expired');
 		} else {
-			console.log('Error verifying token:', err.message);
+			console.log('Error verifying token:', error.message);
 		}
 		return null;
 	}

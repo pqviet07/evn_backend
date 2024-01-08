@@ -5,21 +5,20 @@ exports.create = async newAccount => {
     try {
         const data = await newAccount.save();
         if (data) return true;
-        return false;
     } catch (error) {
         console.log("Error create account:" + error);
-        return false;
     }
+    return false;
 };
 
 exports.findOne = async username => {
     try {
         const data = await Account.findOne({ username: username });
-        return data;
+        if (data) return data;
     } catch (error) {
         console.log(`Error find account: ${username} \t with err:` + error);
-        return null;
     }
+    return null;
 };
 
 exports.updateRefreshToken = async (username, refreshToken) => {

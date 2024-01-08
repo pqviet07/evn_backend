@@ -1,13 +1,25 @@
 const express = require("express");
 const cors = require("cors");
-
 const app = express();
+const morgan = require('morgan');
+const fs = require('fs');
+const path = require('path');
+const rfs = require('rotating-file-stream');
+
+require('dotenv').config();
+
+// create a rotating write stream
+var accessLogStream = rfs.createStream('access.log', {
+  interval: '1d', // rotate daily
+  path: path.join(__dirname, 'log')
+});
 
 var corsOptions = {
   origin: "http://localhost:8081",
 };
 
 app.use(cors(corsOptions));
+app.use(morgan('combined', { stream: accessLogStream }))
 
 // parse requests of content-type - application/json
 app.use(express.json());

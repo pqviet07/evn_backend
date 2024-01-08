@@ -11,15 +11,13 @@ const Account = db.account;
 
 exports.signup = async (req, res) => {
     if (!req.body.username || !req.body.password) {
-        res.status(400).send({ message: "Username and password can not be empty!" });
-        return;
+        return res.status(400).send({ message: "Username and password can not be empty!" });
     }
     const username = req.body.username.toLowerCase();
     const account = await accountController.findOne(username);
 
     if (account) {
-        res.status(409).send('The username already exists.');
-        return;
+        return res.status(409).send('The username already exists.');
     } else {
         const hashPassword = bcrypt.hashSync(req.body.password, SALT_ROUNDS);
         const newAccount = new Account({
@@ -29,29 +27,32 @@ exports.signup = async (req, res) => {
 
         const result = await accountController.create(newAccount);
         if (!result) {
-            res.status(400).send('There was an error in the process of creating the account, please try again.');
-            return;
+            return res.status(400).send('There was an error in the process of creating the account, please try again.');
         }
 
         res.send({ username });
-        return;
     }
 };
 
 exports.login = async (req, res) => {
+    if (typeof req.body.username !== 'string') {
+        return res.status(400).send('Username must be a string');
+    }
+    if (typeof req.body.password !== 'string') {
+        return res.status(400).send('Password must be a string');
+    }
+    
     const username = req.body.username.toLowerCase();
     const password = req.body.password;
 
     const account = await accountController.findOne(username);
     if (!account) {
-        res.status(401).send('Invalid username or password.');
-        return;
+        return res.status(401).send('Invalid username or password.');
     }
 
     const isPasswordValid = bcrypt.compareSync(password, account.password);
     if (!isPasswordValid) {
-        res.status(401).send('Invalid username or password.');
-        return;
+        return res.status(401).send('Invalid username or password.');
     }
 
     const accessTokenLife = process.env.ACCESS_TOKEN_LIFE || jwtVariable.accessTokenLife;
@@ -66,7 +67,7 @@ exports.login = async (req, res) => {
         accessTokenLife,
     );
     if (!accessToken) {
-        res.status(401).send('Login unsuccessful, please try again.');
+        return res.status(401).send('Login unsuccessful, please try again.');
     }
 
     let refreshToken = randToken.generate(jwtVariable.refreshTokenSize); // tạo 1 refresh token ngẫu nhiên
@@ -96,8 +97,7 @@ exports.refreshToken = async (req, res) => {
     // Lấy refresh token từ body
     const refreshTokenFromBody = req.body.refreshToken;
     if (!refreshTokenFromBody) {
-        res.status(400).send('Rrefresh token not found.');
-        return;
+        return res.status(400).send('Rrefresh token not found.');
     }
 
     const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || jwtVariable.accessTokenSecret;
@@ -135,9 +135,7 @@ exports.refreshToken = async (req, res) => {
     );
 
     if (!accessToken) {
-        return res
-            .status(400)
-            .send('Failed to create access token, please try again');
+        return res.status(400).send('Failed to create access token, please try again');
     }
     return res.json({
         accessToken,
